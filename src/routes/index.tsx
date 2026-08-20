@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
   candidates,
   currentUser,
@@ -181,10 +181,12 @@ function ProfileModal({
   profile,
   onClose,
   onSave,
+  onSignOut,
 }: {
   profile: Profile;
   onClose: () => void;
   onSave: (p: Profile) => void;
+  onSignOut: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Profile>(profile);
@@ -240,8 +242,12 @@ function ProfileModal({
                 </label>
                 <input
                   type="number"
+                  min={0}
+                  step={1}
                   value={draft.age}
-                  onChange={(e) => setDraft({ ...draft, age: Number(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setDraft({ ...draft, age: Math.max(0, Number(e.target.value) || 0) })
+                  }
                   className="mt-1 w-full px-4 py-2.5 rounded-xl bg-white ring-1 ring-black/10 focus:ring-brand outline-none"
                 />
               </div>
@@ -338,6 +344,12 @@ function ProfileModal({
             </button>
           </div>
         )}
+        <button
+          onClick={onSignOut}
+          className="mt-5 w-full py-3 text-sm font-medium text-red-700 transition-colors hover:text-red-800"
+        >
+          Sign out
+        </button>
       </div>
     </div>
   );
@@ -393,7 +405,9 @@ function MatchModal({
 }
 
 function DiscoveryPage() {
+  const navigate = useNavigate();
   const [me, setMe] = useState<Profile>(currentUser);
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("similar");
   const [seen, setSeen] = useState<Set<string>>(new Set());
@@ -402,6 +416,10 @@ function DiscoveryPage() {
   const [matchOpen, setMatchOpen] = useState<Profile | null>(null);
   const [swipeDir, setSwipeDir] = useState<"left" | "right" | null>(null);
   const [view, setView] = useState<"discovery" | "network">("discovery");
+
+  useEffect(() => {
+    setIsSignedIn(localStorage.getItem("connectify-authenticated") === "true");
+  }, []);
 
   const deck = useMemo(
     () => rankCandidates(me, candidates, mode, seen),
@@ -461,6 +479,14 @@ function DiscoveryPage() {
           </button>
         </div>
         <div className="flex items-center gap-4">
+          {!isSignedIn && (
+            <Link
+              to="/login"
+              className="hidden text-sm font-medium text-zinc-500 transition-colors hover:text-brand sm:block"
+            >
+              Sign in
+            </Link>
+          )}
           <button
             onClick={() => setProfileOpen(true)}
             className="rounded-full ring-2 ring-transparent hover:ring-brand-ring transition-all"
@@ -627,6 +653,11 @@ function DiscoveryPage() {
           profile={me}
           onClose={() => setProfileOpen(false)}
           onSave={(p) => setMe(p)}
+          onSignOut={() => {
+            localStorage.removeItem("connectify-authenticated");
+            setProfileOpen(false);
+            navigate({ to: "/login" });
+          }}
         />
       )}
     </div>
