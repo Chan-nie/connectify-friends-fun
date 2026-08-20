@@ -85,9 +85,7 @@ function LoginPage() {
               </span>
               <span className="font-serif text-xl tracking-tight">connectify</span>
             </Link>
-            <p className="text-sm text-zinc-500">
-              New here? <Link to="/" className="font-semibold text-brand hover:underline">Browse as a guest</Link>
-            </p>
+            <p className="text-sm text-zinc-500">Use the demo account below to get started.</p>
           </div>
 
           <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-14">

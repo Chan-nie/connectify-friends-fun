@@ -408,6 +408,7 @@ function DiscoveryPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Profile>(currentUser);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("similar");
   const [seen, setSeen] = useState<Set<string>>(new Set());
@@ -418,8 +419,14 @@ function DiscoveryPage() {
   const [view, setView] = useState<"discovery" | "network">("discovery");
 
   useEffect(() => {
-    setIsSignedIn(localStorage.getItem("connectify-authenticated") === "true");
-  }, []);
+    const authenticated = localStorage.getItem("connectify-authenticated") === "true";
+    if (!authenticated) {
+      navigate({ to: "/login", replace: true });
+      return;
+    }
+    setIsSignedIn(true);
+    setAuthChecked(true);
+  }, [navigate]);
 
   const deck = useMemo(
     () => rankCandidates(me, candidates, mode, seen),
@@ -448,6 +455,8 @@ function DiscoveryPage() {
   };
 
   const resetDeck = () => setSeen(new Set());
+
+  if (!authChecked) return null;
 
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900 font-sans selection:bg-brand-soft">
